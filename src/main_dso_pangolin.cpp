@@ -50,11 +50,16 @@
 #include "IOWrapper/Pangolin/PangolinDSOViewer.h"
 #include "IOWrapper/OutputWrapper/SampleOutputWrapper.h"
 
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+
 
 std::string vignette = "";
 std::string gammaCalib = "";
 std::string source = "";
 std::string calib = "";
+std::string mask_relative = "";
 double rescale = 1;
 bool reverse = false;
 bool disableROS = false;
@@ -306,6 +311,13 @@ void parseArgument(char* arg)
 		return;
 	}
 
+	if(1==sscanf(arg,"mask=%s",buf))
+    {
+	    mask_relative = buf;
+        printf("loading mask relative path set to %s\n", mask_relative.c_str());
+        return;
+    }
+
 	if(1==sscanf(arg,"save=%d",&option))
 	{
 		if(option==1)
@@ -349,7 +361,21 @@ void parseArgument(char* arg)
 	printf("could not parse argument \"%s\"!!!!\n", arg);
 }
 
+template<typename Out>
+void split(const std::string &s, char delim, Out result) {
+    std::stringstream ss;
+    ss.str(s);
+    std::string item;
+    while (std::getline(ss, item, delim)) {
+        *(result++) = item;
+    }
+}
 
+std::vector<std::string> split(const std::string &s, char delim) {
+    std::vector<std::string> elems;
+    split(s, delim, std::back_inserter(elems));
+    return elems;
+}
 
 int main( int argc, char** argv )
 {
@@ -452,7 +478,6 @@ int main( int argc, char** argv )
         clock_t started = clock();
         double sInitializerOffset=0;
 
-
         for(int ii=0;ii<(int)idsToPlay.size(); ii++)
         {
             if(!fullSystem->initialized)	// if not initialized: reset start time.
@@ -488,9 +513,44 @@ int main( int argc, char** argv )
                 }
             }
 
+            if(!skipFrame){
+                if(!mask_relative.empty()){
+                    // find the corresponding mask image and feed it in
+                    std::string image_path = reader->files[i];
+                    // from the relative path to mask path
+                    auto splits = split(image_path, '/');
+                    while(splits.back().empty())
+                        splits.pop_back();
 
+                    std::string mask_path;
+                    for(int i=0; i<splits.size()-1; ++i)
+                        mask_path += splits[i] + "/";
+                    auto file_splits = split(splits.back(), '.');
+                    mask_path += mask_relative + "/" + file_splits[0] + ".png";
 
-            if(!skipFrame) fullSystem->addActiveFrame(img, i);
+                    cv::Mat mask = cv::imread(mask_path, CV_LOAD_IMAGE_GRAYSCALE);
+                    bool resizeB=false;
+                    if(benchmarkSetting_width != 0){
+                        resizeB=true;
+                    }else{
+                        benchmarkSetting_width = mask.cols;
+                    }
+                    if(benchmarkSetting_height != 0){
+                        resizeB=true;
+                    }else{
+                       benchmarkSetting_height = mask.rows;
+                    }
+                    if(resizeB){
+                        cv::Mat mask_rs(benchmarkSetting_height, benchmarkSetting_width, CV_8U);
+                        resize(mask, mask_rs, mask_rs.size(), 0, 0, cv::INTER_NEAREST);
+                        mask = mask_rs;
+                    }
+
+                    fullSystem->addActiveFrame(img, i, mask.data);
+                }else
+                    fullSystem->addActiveFrame(img, i);
+
+            }
 
 
 

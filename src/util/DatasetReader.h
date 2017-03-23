@@ -239,6 +239,8 @@ public:
 
 	// undistorter. [0] always exists, [1-2] only when MT is enabled.
 	Undistort* undistort;
+	std::vector<std::string> files;
+
 private:
 
 
@@ -359,7 +361,6 @@ private:
 
 
 	std::vector<ImageAndExposure*> preloadedImages;
-	std::vector<std::string> files;
 	std::vector<double> timestamps;
 	std::vector<float> exposures;
 

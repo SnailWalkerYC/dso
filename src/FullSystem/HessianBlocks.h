@@ -257,7 +257,7 @@ struct FrameHessian
 	};
 
 
-    void makeImages(float* color, CalibHessian* HCalib);
+    void makeImages(float* color, CalibHessian* HCalib, unsigned char* mask=0);
 
 	inline Vec10 getPrior()
 	{

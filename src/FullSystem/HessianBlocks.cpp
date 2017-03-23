@@ -124,14 +124,40 @@ void FrameHessian::release()
 	immaturePoints.clear();
 }
 
+template<class T>
+T min4(T& a, T& b, T& c, T& d){
+    T ans = a;
+    if(b<ans)
+        ans = b;
+    if(c<ans)
+        ans = c;
+    if(d<ans)
+        ans = d;
+    return ans;
+}
 
-void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
+template<class T>
+T max4(T& a, T& b, T& c, T& d){
+    T ans = a;
+    if(b>ans)
+        ans = b;
+    if(c>ans)
+        ans = c;
+    if(d>ans)
+        ans = d;
+    return ans;
+}
+
+
+void FrameHessian::makeImages(float* color, CalibHessian* HCalib, unsigned char* mask)
 {
-
+    unsigned char* masks[PYR_LEVELS];
 	for(int i=0;i<pyrLevelsUsed;i++)
 	{
 		dIp[i] = new Eigen::Vector3f[wG[i]*hG[i]];
 		absSquaredGrad[i] = new float[wG[i]*hG[i]];
+		if(mask)
+		    masks[i] = new unsigned char[wG[i]*hG[i]];
 	}
 	dI = dIp[0];
 
@@ -139,8 +165,17 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 	// make d0
 	int w=wG[0];
 	int h=hG[0];
-	for(int i=0;i<w*h;i++)
+	for(int i=0;i<w*h;i++){
+	    // TODO modify here for masking
 		dI[i][0] = color[i];
+
+		if (mask){
+		    masks[0][i] = mask[i];
+		    if(mask[i]==0)
+		        dI[i][0] = 0;
+		}
+
+	}
 
 	for(int lvl=0; lvl<pyrLevelsUsed; lvl++)
 	{
@@ -159,15 +194,33 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 			for(int y=0;y<hl;y++)
 				for(int x=0;x<wl;x++)
 				{
+
 					dI_l[x + y*wl][0] = 0.25f * (dI_lm[2*x   + 2*y*wlm1][0] +
 												dI_lm[2*x+1 + 2*y*wlm1][0] +
 												dI_lm[2*x   + 2*y*wlm1+wlm1][0] +
 												dI_lm[2*x+1 + 2*y*wlm1+wlm1][0]);
+					// TODO: modify here to add mask
+					if(mask){
+					    unsigned char x = min4(masks[lvl-1][2*x + 2*y*wlm1],
+					                               masks[lvl-1][2*x+1 + 2*y*wlm1],
+					                               masks[lvl-1][2*x   + 2*y*wlm1+wlm1],
+					                               masks[lvl-1][2*x+1 + 2*y*wlm1+wlm1]);
+					    masks[lvl][x + y*wl] = x;
+					    //if(x==0) dI_l[x + y*wl][0] = 0;
+					}
+
 				}
 		}
 
 		for(int idx=wl;idx < wl*(hl-1);idx++)
-		{
+        // TODO modify based on mask
+		/*
+        if(mask && masks[lvl][idx] == 0){
+            dabs_l[idx] = 0;
+            dI_l[idx][1] = 0;
+            dI_l[idx][2] = 0;
+        }else*/
+        {
 			float dx = 0.5f*(dI_l[idx+1][0] - dI_l[idx-1][0]);
 			float dy = 0.5f*(dI_l[idx+wl][0] - dI_l[idx-wl][0]);
 
@@ -178,7 +231,6 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 			dI_l[idx][1] = dx;
 			dI_l[idx][2] = dy;
 
-
 			dabs_l[idx] = dx*dx+dy*dy;
 
 			if(setting_gammaWeightsPixelSelect==1 && HCalib!=0)
@@ -188,6 +240,11 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib)
 			}
 		}
 	}
+
+	if (mask)
+	for(int i=0;i<pyrLevelsUsed;i++)
+        delete[] masks[i];
+
 }
 
 void FrameFramePrecalc::set(FrameHessian* host, FrameHessian* target, CalibHessian* HCalib )

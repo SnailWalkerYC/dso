@@ -135,7 +135,7 @@ public:
 	virtual ~FullSystem();
 
 	// adds a new frame, and creates point & residual structs.
-	void addActiveFrame(ImageAndExposure* image, int id);
+	void addActiveFrame(ImageAndExposure* image, int id, unsigned char* mask=0);
 
 	// marginalizes a frame. drops / marginalizes points & residuals.
 	void marginalizeFrame(FrameHessian* frame);
