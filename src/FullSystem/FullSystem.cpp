@@ -55,6 +55,7 @@
 #include "util/ImageAndExposure.h"
 
 #include <cmath>
+#include <math.h>
 
 namespace dso
 {
@@ -484,6 +485,18 @@ void FullSystem::traceNewCoarse(FrameHessian* fh)
 		for(ImmaturePoint* ph : host->immaturePoints)
 		{
 			ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false );
+
+			// TODO: hack to filter out points
+			int u = round(ph->u - 0.5f);
+            int v = round(ph->v - 0.5f);
+            unsigned char* mask = ph->host->masks[0];
+            if(mask && mask[u + v*wG[0]] == 0 && ph->lastTraceStatus==ImmaturePointStatus::IPS_GOOD){
+
+                ph->lastTraceUV = Vec2f(-1,-1);
+                ph->lastTracePixelInterval=0;
+                ph->lastTraceStatus = ImmaturePointStatus::IPS_OOB;
+            }
+
 
 			if(ph->lastTraceStatus==ImmaturePointStatus::IPS_GOOD) trace_good++;
 			if(ph->lastTraceStatus==ImmaturePointStatus::IPS_BADCONDITION) trace_badcondition++;

@@ -151,13 +151,14 @@ T max4(T& a, T& b, T& c, T& d){
 
 void FrameHessian::makeImages(float* color, CalibHessian* HCalib, unsigned char* mask)
 {
-    unsigned char* masks[PYR_LEVELS];
 	for(int i=0;i<pyrLevelsUsed;i++)
 	{
 		dIp[i] = new Eigen::Vector3f[wG[i]*hG[i]];
 		absSquaredGrad[i] = new float[wG[i]*hG[i]];
 		if(mask)
 		    masks[i] = new unsigned char[wG[i]*hG[i]];
+		else
+		    masks[i] = 0;
 	}
 	dI = dIp[0];
 
@@ -171,8 +172,10 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib, unsigned char*
 
 		if (mask){
 		    masks[0][i] = mask[i];
+		    /*
 		    if(mask[i]==0)
 		        dI[i][0] = 0;
+		        */
 		}
 
 	}

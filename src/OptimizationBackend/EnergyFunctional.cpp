@@ -30,7 +30,7 @@
 #include "OptimizationBackend/AccumulatedSCHessian.h"
 #include "OptimizationBackend/AccumulatedTopHessian.h"
 
-
+#include <math.h>
 
 namespace dso
 {
@@ -919,6 +919,18 @@ void EnergyFunctional::makeIDX()
 	for(EFFrame* f : frames)
 		for(EFPoint* p : f->points)
 		{
+		    // try to filter out points on the masks
+		    /*
+		    int u = round(p->data->u - 0.5f);
+		    int v = round(p->data->v - 0.5f);
+		    unsigned char* mask = f->data->masks[0];
+		    //printf("u %d v %d wG[0] %d hG[0] %d\n", u, v, wG[0], hG[0]);
+		    if(mask && mask[u + v*wG[0]] == 0)
+		        continue;
+		    //printf("done\n");
+		     */
+		    // filter based on the mask
+
 			allPoints.push_back(p);
 			for(EFResidual* r : p->residualsAll)
 			{
