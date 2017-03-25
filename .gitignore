@@ -11,3 +11,6 @@ data/
 thirdparty/
 *~
 src/.*project
+Debug*
+Release*
+result.txt

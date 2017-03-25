@@ -244,10 +244,6 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib, unsigned char*
 		}
 	}
 
-	if (mask)
-	for(int i=0;i<pyrLevelsUsed;i++)
-        delete[] masks[i];
-
 }
 
 void FrameFramePrecalc::set(FrameHessian* host, FrameHessian* target, CalibHessian* HCalib )

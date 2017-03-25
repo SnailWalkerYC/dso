@@ -486,18 +486,6 @@ void FullSystem::traceNewCoarse(FrameHessian* fh)
 		{
 			ph->traceOn(fh, KRKi, Kt, aff, &Hcalib, false );
 
-			// TODO: hack to filter out points
-			int u = round(ph->u - 0.5f);
-            int v = round(ph->v - 0.5f);
-            unsigned char* mask = ph->host->masks[0];
-            if(mask && mask[u + v*wG[0]] == 0 && ph->lastTraceStatus==ImmaturePointStatus::IPS_GOOD){
-
-                ph->lastTraceUV = Vec2f(-1,-1);
-                ph->lastTracePixelInterval=0;
-                ph->lastTraceStatus = ImmaturePointStatus::IPS_OOB;
-            }
-
-
 			if(ph->lastTraceStatus==ImmaturePointStatus::IPS_GOOD) trace_good++;
 			if(ph->lastTraceStatus==ImmaturePointStatus::IPS_BADCONDITION) trace_badcondition++;
 			if(ph->lastTraceStatus==ImmaturePointStatus::IPS_OOB) trace_oob++;
@@ -1313,6 +1301,11 @@ void FullSystem::makeNewTraces(FrameHessian* newFrame, float* gtDepth)
 	{
 		int i = x+y*wG[0];
 		if(selectionMap[i]==0) continue;
+
+		// mask the last time
+		auto mask = newFrame->masks[0];
+		if(mask && mask[i] == 0)
+		    continue;
 
 		ImmaturePoint* impt = new ImmaturePoint(x,y,newFrame, selectionMap[i], &Hcalib);
 		if(!std::isfinite(impt->energyTH)) delete impt;
