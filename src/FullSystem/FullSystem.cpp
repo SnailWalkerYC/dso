@@ -1238,6 +1238,14 @@ void FullSystem::initializeFromInitializer(FrameHessian* newFrame)
 		if(rand()/(float)RAND_MAX > keepPercentage) continue;
 
 		Pnt* point = coarseInitializer->points[0]+i;
+
+
+		auto mask = firstFrame->masks[0];
+		int indexing = point->u + point->v * wG[0];
+        if(mask && mask[indexing] == 0)
+            continue;
+
+
 		ImmaturePoint* pt = new ImmaturePoint(point->u+0.5f,point->v+0.5f,firstFrame,point->my_type, &Hcalib);
 
 		if(!std::isfinite(pt->energyTH)) { delete pt; continue; }

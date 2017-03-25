@@ -202,13 +202,14 @@ void FrameHessian::makeImages(float* color, CalibHessian* HCalib, unsigned char*
 												dI_lm[2*x+1 + 2*y*wlm1][0] +
 												dI_lm[2*x   + 2*y*wlm1+wlm1][0] +
 												dI_lm[2*x+1 + 2*y*wlm1+wlm1][0]);
-					// TODO: modify here to add mask
+					// TODO: modify here to add
+
 					if(mask){
-					    unsigned char x = min4(masks[lvl-1][2*x + 2*y*wlm1],
+					    unsigned char thev = min4(masks[lvl-1][2*x + 2*y*wlm1],
 					                               masks[lvl-1][2*x+1 + 2*y*wlm1],
 					                               masks[lvl-1][2*x   + 2*y*wlm1+wlm1],
 					                               masks[lvl-1][2*x+1 + 2*y*wlm1+wlm1]);
-					    masks[lvl][x + y*wl] = x;
+					    masks[lvl][x + y*wl] = thev;
 					    //if(x==0) dI_l[x + y*wl][0] = 0;
 					}
 

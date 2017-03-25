@@ -794,6 +794,14 @@ void CoarseInitializer::setFirst(	CalibHessian* HCalib, FrameHessian* newFrameHe
 		for(int y=patternPadding+1;y<hl-patternPadding-2;y++)
 		for(int x=patternPadding+1;x<wl-patternPadding-2;x++)
 		{
+		    // mask the last time
+		    // this is multi level, thus should use multiple level of masks to guard.
+		    /*
+            auto mask = firstFrame->masks[0];
+            if(mask && mask[x+y*wl] == 0)
+                continue;
+            */
+
 			//if(x==2) printf("y=%d!\n",y);
 			if((lvl!=0 && statusMapB[x+y*wl]) || (lvl==0 && statusMap[x+y*wl] != 0))
 			{
