@@ -43,7 +43,13 @@
 
 using namespace dso;
 
-
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
+}
 
 inline int getdir (std::string dir, std::vector<std::string> &files)
 {
@@ -57,7 +63,10 @@ inline int getdir (std::string dir, std::vector<std::string> &files)
     while ((dirp = readdir(dp)) != NULL) {
     	std::string name = std::string(dirp->d_name);
 
-    	if(name != "." && name != "..")
+    	std::string lower = name;
+    	std::transform(lower.begin(), lower.end(), lower.begin(), ::tolower);
+    	if(name != "." && name != ".." &&
+    	   (hasEnding(lower, "jpg") || hasEnding(lower, "jpeg") || hasEnding(lower, "png")) )
     		files.push_back(name);
     }
     closedir(dp);
