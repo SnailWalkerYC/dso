@@ -8,7 +8,6 @@ build-*
 *.a
 *.so.*
 data/
-thirdparty/
 *~
 src/.*project
 Debug*
